@@ -56,7 +56,7 @@ From: rocm/dev-ubuntu-22.04:5.7-complete
     export PATH=/opt/rocm/bin:$PATH
     export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH
     export ROCM_PATH=/opt/rocm
-    . /root/.bashrc
+    . /root/.bash_profile
 
 %runscript
     exec "$@"
