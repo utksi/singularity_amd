@@ -41,7 +41,7 @@
         
      3. Build the container (in sandbox mode, alternatively replace --sandbox by <name.sif> for an immutable .sif container):
         
-        sudo SINGULARITY_TMPDIR=/buildtmp singularity build --sandbox torch_pyg_e3nn_mace_rocm5.7.def
+        sudo SINGULARITY_TMPDIR=/buildtmp singularity build --sandbox torch_pyg_e3nn_mace_rocm5.7 torch_pyg_e3nn_mace_rocm5.7.def
      
      5. Check for usage, if none, unmount build_dir, check if it is successfully unmounted and (optionally) delete it:
         
