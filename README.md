@@ -31,7 +31,9 @@
      1. Create a temporary buid_dir and mount it:
         
         sudo mkdir /buildtmp
+        
         sudo chmod 1777 /buildtmp
+
         export SINGULARITY_TMPDIR=/buildtmp
         
      3. Build the container (in sandbox mode, alternatively replace --sandbox by <name.sif> for an immutable .sif container):
@@ -41,8 +43,11 @@
      5. Check for usage, if none, unmount build_dir, check if it is successfully unmounted and (optionally) delete it:
         
         sudo lsof +D /buildtmp
+
         sudo umount /buildtmp
+
         mount | grep buildtmp
+
         sudo rm -r /buildtmp
 
    - Making changes to the container:
@@ -50,7 +55,9 @@
      1. interactively:
         
         sudo singularity shell --writable torch_pyg_e3nn_mace_rocm5.7
+
         <Make changes>
+        
         exit
         
      3. Non-interactively (create a work dir to be bound later to hpc filesystem, for example):
