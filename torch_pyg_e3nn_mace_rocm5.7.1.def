@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: rocm/dev-ubuntu-22.04:5.7-complete
+From: rocm/dev-ubuntu-22.04:5.7.1-complete
 
 %post
     # Set DNS for internet access during the build process
@@ -15,10 +15,11 @@ From: rocm/dev-ubuntu-22.04:5.7-complete
     apt-get install -y build-essential git vim curl wget zip unzip zlib1g-dev pkg-config libblas-dev liblapack-dev python3-dev python3-venv python3-pip python3-wheel graphviz libhdf5-dev python3-distutils libjpeg-dev iputils-ping swig
     apt-get clean
 
-    # Create a symlink for python as some software still expects `python` binary
-    ln -s /usr/bin/python3 /usr/bin/python
+    # Create a Python virtual environment
+    python3 -m venv /opt/venv
+    source /opt/venv/bin/activate
 
-    # Upgrade pip
+    # Upgrade pip in the virtual environment
     pip install --upgrade pip
     pip cache purge
 
@@ -57,18 +58,18 @@ From: rocm/dev-ubuntu-22.04:5.7-complete
     pip install . > /tmp/pytorch_geometric_install.log 2>&1
     cd /opt  # Going back to a neutral directory after installation
 
+    # Additional Python packages
+    pip install --no-cache-dir mace-torch numba gitpython pytest pytest-cov blackcellmagic graphviz gpustat h5py jupyterlab
+
     # Validate installation by checking if the module can be imported
     python -c "import torch; print(torch.__version__)" > /tmp/version.log
     python -c "import torch_geometric; print(torch_geometric.__version__)" >> /tmp/version.log
 
-    
-    # Additional Python packages
-    pip --no-cache-dir install mace-torch numba gitpython pytest pytest-cov blackcellmagic graphviz gpustat h5py jupyterlab
-
 %environment
-    # singulrity binds the system nameserver to its shell everytime
-    # unless explicitly turned off
-    export SHELL=/bin/bash
+    # Activate virtual environment by default
+    export VIRTUAL_ENV=/opt/venv
+    export PATH="/opt/venv/bin:$PATH"
+    unset PYTHONHOME
 
 %runscript
-    exec "$@"
+    exec source /opt/venv/bin/activate && "$@"
