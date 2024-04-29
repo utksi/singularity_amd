@@ -38,25 +38,10 @@ From: rocm/dev-ubuntu-22.04:5.7-complete
     # Additional Python packages
     python3 -m pip --no-cache-dir install mace-torch numba gitpython pytest pytest-cov blackcellmagic graphviz gpustat h5py jupyterlab
 
-    # Create or append to .bash_profile to source .bashrc
-    echo "if [ -f \"$HOME/.bashrc\" ]; then . \"$HOME/.bashrc\"; fi" >> $HOME/.bash_profile
-
-    # Also ensure .profile will source .bashrc, for compatibility with non-Bash shells
-    echo "if [ -f \"$HOME/.bashrc\" ]; then . \"$HOME/.bashrc\"; fi" >> $HOME/.profile
-
-    # Ensure aliases and Bash configurations are set up in .bashrc
-    echo "# Alias definitions" >> $HOME/.bashrc
-    echo "alias cls='clear'" >> $HOME/.bashrc
-    echo "alias l='ls -ltr'" >> $HOME/.bashrc
-
 %environment
     # singulrity binds the system nameserver to its shell everytime
     # unless explicitly turned off
     export SHELL=/bin/bash
-    export PATH=/opt/rocm/bin:$PATH
-    export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH
-    export ROCM_PATH=/opt/rocm
-    . /root/.bash_profile
 
 %runscript
     exec "$@"
