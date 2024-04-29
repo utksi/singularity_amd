@@ -19,24 +19,51 @@ From: rocm/dev-ubuntu-22.04:5.7-complete
     ln -s /usr/bin/python3 /usr/bin/python
 
     # Upgrade pip
-    python3 -m pip install --upgrade pip
-    python3 -m pip cache purge
+    pip install --upgrade pip
+    pip cache purge
 
     # Install PyTorch and other dependencies without using the pip cache
-    python3 -m pip --no-cache-dir install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/rocm5.7
+    pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/rocm5.7
     
     # Additional PyTorch libraries and dependencies
-    mkdir bin && cd bin
+    # Change into a directory where we will clone all the necessary repositories
+    mkdir -p /opt/pytorch-addons
+    cd /opt/pytorch-addons
+
+    # Clone the necessary repositories
     git clone https://github.com/greg7mdp/parallel-hashmap.git
-    git clone https://github.com/Looong01/pyg-rocm-build.git && cd pyg-rocm-build
-    cd ./pytorch_cluster-1.6.3 && pip install . && cd ../
-    cd ./pytorch_scatter-2.1.2 && pip install . && cd ../
-    cd ./pytorch_sparse-0.6.18 && sed -i 's|phmap_dir = osp.abspath("third_party/parallel-hashmap")|phmap_dir = osp.abspath("/root/bin/parallel-hashmap/parallel_hashmap")|' setup.py && pip install . && cd ../
-    cd ./pytorch_spline_conv-1.2.2 && pip install . && cd ../
-    cd ./pytorch_geometric-2.5.2 && pip install . && cd $HOME
+    git clone https://github.com/Looong01/pyg-rocm-build.git
+
+    # Install each PyTorch Geometric component
+    cd pyg-rocm-build/pytorch_cluster-1.6.3
+    pip install . > /tmp/pytorch_cluster_install.log 2>&1
+    cd ..
+
+    cd pytorch_scatter-2.1.2
+    pip install . > /tmp/pytorch_scatter_install.log 2>&1
+    cd ..
+
+    cd pytorch_sparse-0.6.18
+    # Adjust setup.py to correct path for parallel-hashmap
+    sed -i 's|phmap_dir = osp.abspath("third_party/parallel-hashmap")|phmap_dir = osp.abspath("/opt/pytorch-addons/parallel-hashmap/parallel_hashmap")|' setup.py
+    pip install . > /tmp/pytorch_sparse_install.log 2>&1
+    cd ..
+
+    cd pytorch_spline_conv-1.2.2
+    pip install . > /tmp/pytorch_spline_conv_install.log 2>&1
+    cd ..
+
+    cd pytorch_geometric-2.5.2
+    pip install . > /tmp/pytorch_geometric_install.log 2>&1
+    cd /opt  # Going back to a neutral directory after installation
+
+    # Validate installation by checking if the module can be imported
+    python -c "import torch; print(torch.__version__)" > /tmp/version.log
+    python -c "import torch_geometric; print(torch_geometric.__version__)" >> /tmp/version.log
+
     
     # Additional Python packages
-    python3 -m pip --no-cache-dir install mace-torch numba gitpython pytest pytest-cov blackcellmagic graphviz gpustat h5py jupyterlab
+    pip --no-cache-dir install mace-torch numba gitpython pytest pytest-cov blackcellmagic graphviz gpustat h5py jupyterlab
 
 %environment
     # singulrity binds the system nameserver to its shell everytime
@@ -45,4 +72,3 @@ From: rocm/dev-ubuntu-22.04:5.7-complete
 
 %runscript
     exec "$@"
-
