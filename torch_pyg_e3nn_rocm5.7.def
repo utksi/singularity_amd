@@ -54,7 +54,7 @@ From: rocm/dev-ubuntu-22.04:5.7
     cd
 
     # Additional Python packages
-    pip install --no-cache-dir mace-torch 
+    pip install --no-cache-dir e3nn 
     pip install --no-cache-dir numba gitpython pytest pytest-cov blackcellmagic graphviz gpustat h5py jupyterlab
 
     # Validate installation by checking if the module can be imported
