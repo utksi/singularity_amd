@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: rocm/dev-ubuntu-22.04:5.7.1-complete
+From: rocm/dev-ubuntu-22.04:5.7
 
 %post
     # Set DNS for internet access during the build process
@@ -15,10 +15,6 @@ From: rocm/dev-ubuntu-22.04:5.7.1-complete
     apt-get install -y build-essential git vim curl wget zip unzip zlib1g-dev pkg-config libblas-dev liblapack-dev python3-dev python3-venv python3-pip python3-wheel graphviz libhdf5-dev python3-distutils libjpeg-dev iputils-ping swig
     apt-get clean
 
-    # Create a Python virtual environment
-    python3 -m venv /opt/venv
-    source /opt/venv/bin/activate
-
     # Upgrade pip in the virtual environment
     pip install --upgrade pip
     pip cache purge
@@ -27,49 +23,47 @@ From: rocm/dev-ubuntu-22.04:5.7.1-complete
     pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/rocm5.7
     
     # Additional PyTorch libraries and dependencies
-    # Change into a directory where we will clone all the necessary repositories
-    mkdir -p /opt/pytorch-addons
-    cd /opt/pytorch-addons
-
+    # parallel-hashmap header files for pytorch_sparse
+    
+    wget https://ubuntu-test.eng.cam.ac.uk/ubuntu/pool/universe/p/parallel-hashmap/libparallel-hashmap-dev_1.3.12+ds-1_all.deb
+    dpkg -i libparallel-hashmap-dev_1.3.12+ds-1_all.deb
+    
     # Clone the necessary repositories
-    git clone https://github.com/greg7mdp/parallel-hashmap.git
     git clone https://github.com/Looong01/pyg-rocm-build.git
 
     # Install each PyTorch Geometric component
-    cd pyg-rocm-build/pytorch_cluster-1.6.3
-    pip install . > /tmp/pytorch_cluster_install.log 2>&1
+    cd pyg-rocm-build
+    cd pytorch_cluster-1.6.3
+    pip install . > pytorch_cluster_install.log 2>&1
     cd ..
 
     cd pytorch_scatter-2.1.2
-    pip install . > /tmp/pytorch_scatter_install.log 2>&1
+    pip install . > pytorch_scatter_install.log 2>&1
     cd ..
 
     cd pytorch_sparse-0.6.18
-    # Adjust setup.py to correct path for parallel-hashmap
-    sed -i 's|phmap_dir = osp.abspath("third_party/parallel-hashmap")|phmap_dir = osp.abspath("/opt/pytorch-addons/parallel-hashmap/parallel_hashmap")|' setup.py
-    pip install . > /tmp/pytorch_sparse_install.log 2>&1
+    pip install . > pytorch_sparse_install.log 2>&1
     cd ..
 
     cd pytorch_spline_conv-1.2.2
-    pip install . > /tmp/pytorch_spline_conv_install.log 2>&1
+    pip install . > pytorch_spline_conv_install.log 2>&1
     cd ..
 
     cd pytorch_geometric-2.5.2
-    pip install . > /tmp/pytorch_geometric_install.log 2>&1
-    cd /opt  # Going back to a neutral directory after installation
+    pip install . > pytorch_geometric_install.log 2>&1
+    cd
 
     # Additional Python packages
-    pip install --no-cache-dir mace-torch numba gitpython pytest pytest-cov blackcellmagic graphviz gpustat h5py jupyterlab
+    pip install --no-cache-dir mace-torch 
+    pip install --no-cache-dir numba gitpython pytest pytest-cov blackcellmagic graphviz gpustat h5py jupyterlab
 
     # Validate installation by checking if the module can be imported
-    python -c "import torch; print(torch.__version__)" > /tmp/version.log
-    python -c "import torch_geometric; print(torch_geometric.__version__)" >> /tmp/version.log
+    python3 -c "import torch; print(torch.__version__)" > version.log
+    python3 -c "import torch_geometric; print(torch_geometric.__version__)" >> version.log
 
 %environment
     # Activate virtual environment by default
-    export VIRTUAL_ENV=/opt/venv
-    export PATH="/opt/venv/bin:$PATH"
-    unset PYTHONHOME
+    export SHELL=/bin/bash
 
 %runscript
-    exec source /opt/venv/bin/activate && "$@"
+    exec /bin/bash -c "$@"
